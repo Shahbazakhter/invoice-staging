@@ -4,7 +4,9 @@ public enum InvoiceDetailStatus {
 
     INVOICE_STAGE("invoice_stage"),
     INVOICE_STAGE_PENDING("invoice_stage_pending"),
-    INVOICE_STAGE_DONE("invoice_stage_done");
+    INVOICE_STAGE_DONE("invoice_stage_done"),
+    PUSHED_TO_ORACLE("pushed_to_oracle"),
+    ERROR("error");
 
     private final String value;
 

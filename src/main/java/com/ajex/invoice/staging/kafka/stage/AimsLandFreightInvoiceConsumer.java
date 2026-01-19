@@ -4,7 +4,7 @@ import com.ajex.invoice.staging.dto.AimsInvoiceData;
 import com.ajex.invoice.staging.service.InvoiceService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
@@ -12,8 +12,11 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+import static com.ajex.invoice.staging.constant.InvoiceDetailStatus.INVOICE_STAGE;
+import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.LOG_UPDATE_STATUS;
+
 @Component
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 public class AimsLandFreightInvoiceConsumer {
 
@@ -29,14 +32,15 @@ public class AimsLandFreightInvoiceConsumer {
             groupId = "${spring.kafka.consumer.group-id}")
     public void listenToAimsInvoiceStaging(String message) {
         try {
-            log.info("AimsLandFreightInvoiceConsumer AIMS Invoice Staging message {}", message);
+            log.info("AIMS Invoice Staging message {}", message);
             List<AimsInvoiceData> invoiceData = objectMapper.readValue(message, new TypeReference<>() {
             });
             if (invoiceData != null && !invoiceData.isEmpty()) {
                 invoiceService.stageInvoices(invoiceData);
+                log.info(LOG_UPDATE_STATUS, INVOICE_STAGE);
             }
         } catch (Exception e) {
-            log.error("AimsLandFreightInvoiceConsumer listenToAimsInvoiceStaging", e);
+            log.error("Exception occurred listenToAimsInvoiceStaging", e);
         }
     }
 

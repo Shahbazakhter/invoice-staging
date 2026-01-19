@@ -21,15 +21,15 @@ public class InvoiceStagingController {
 
     @GetMapping
     public List<LandFreightInvoiceDetail> getAllInvoiceStages(
-            @RequestParam(value = "status") String status,
+            @RequestParam(value = "statuses") List<String> statuses,
             @RequestParam(defaultValue = "land_freight", required = false) String businessLine) {
-        return invoiceService.getAllInvoices(status, businessLine);
+        return invoiceService.getAllInvoices(statuses, businessLine);
     }
 
     @PostMapping("/push")
     public CommonResponse<String> stagingForPush(@Valid @RequestBody List<String> waybillNos) {
         invoiceService.stageForPush(waybillNos);
-        return new CommonResponse<>("SUCCESS", 200);
+        return new CommonResponse<>("Push to Oracle Initiated", 200);
     }
 
 }

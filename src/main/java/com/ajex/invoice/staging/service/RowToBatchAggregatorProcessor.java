@@ -44,7 +44,7 @@ public class RowToBatchAggregatorProcessor
 
     @Override
     public void process(Record<String, RowEvent> record) {
-        log.info("BatchAggregatorProcessor Processing started with key: {}", record.key());
+        log.info("Processing started with key: {}", record.key());
         try {
             String key = record.key();
             RowEvent event = record.value();
@@ -54,7 +54,6 @@ public class RowToBatchAggregatorProcessor
             if (state == null) {
                 state = new AggregationState();
             }
-
             state.add(event);
 
             // SIZE trigger (20 rows)
@@ -64,19 +63,20 @@ public class RowToBatchAggregatorProcessor
             } else {
                 store.put(key, state);
             }
-            log.info("BatchAggregatorProcessor Processing done with key: {}", record.key());
+            log.info("Processing done with key: {}", record.key());
         } catch (Exception e) {
-            log.error("BatchAggregatorProcessor Exception occurred processing record: ", e);
+            log.error("Exception occurred processing record: ", e);
             throw new RuntimeException(e);
         }
     }
 
     private void onPunctuate(long timestamp) {
-        log.info("BatchAggregatorProcessor Punctuation started at {}", Instant.ofEpochMilli(timestamp));
+        log.info("Punctuation started at {}", Instant.ofEpochMilli(timestamp));
         try {
             Instant now = Instant.ofEpochMilli(timestamp);
 
             try (KeyValueIterator<String, AggregationState> it = store.all()) {
+
                 while (it.hasNext()) {
                     KeyValue<String, AggregationState> entry = it.next();
                     AggregationState state = entry.value;
@@ -87,9 +87,9 @@ public class RowToBatchAggregatorProcessor
                     }
                 }
             }
-            log.debug("BatchAggregatorProcessor Punctuation done");
+            log.debug("Punctuation done");
         } catch (Exception e) {
-            log.error("BatchAggregatorProcessor Exception occurred during punctuation: ", e);
+            log.error("Exception occurred during punctuation: ", e);
             throw new RuntimeException(e);
         }
     }
@@ -98,7 +98,7 @@ public class RowToBatchAggregatorProcessor
                            AggregationState state,
                            String trigger) {
         try {
-            log.info("BatchAggregatorProcessor Emitting batch started key: {} with {} rows due to {} trigger",
+            log.info("Emitting batch started key: {} with {} rows due to {} trigger",
                     key, state.getRowIds().size(), trigger);
             BatchEvent batch = new BatchEvent(
                     UUID.randomUUID().toString(),
@@ -107,14 +107,11 @@ public class RowToBatchAggregatorProcessor
                     trigger
             );
             context.forward(new Record<>(key, batch, System.currentTimeMillis()));
-            log.debug("BatchAggregatorProcessor Emitting batch done key: {}", key);
+            log.debug("Emitting batch done key: {}", key);
         } catch (Exception e) {
-            log.error("BatchAggregatorProcessor Exception occurred emitting batch: ", e);
+            log.error("Exception occurred emitting batch: ", e);
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void close() {
-    }
 }

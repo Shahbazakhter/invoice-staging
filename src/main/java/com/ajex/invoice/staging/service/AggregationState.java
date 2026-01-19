@@ -28,7 +28,7 @@ public class AggregationState {
 
     public boolean timeExceeded(Instant now) {
         return firstSeen != null &&
-                Duration.between(firstSeen, now).toMinutes() >= 2;
+                Duration.between(firstSeen, now).toMinutes() >= 5;
     }
 
     public void clear() {

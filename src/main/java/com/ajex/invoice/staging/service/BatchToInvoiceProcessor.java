@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.ajex.invoice.staging.constant.InvoiceDetailStatus.INVOICE_STAGE_DONE;
+import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.LOG_UPDATE_STATUS;
+
 @Component
 @Slf4j
 public class BatchToInvoiceProcessor implements Processor<String, BatchEvent, Void, Void> {
@@ -34,21 +37,35 @@ public class BatchToInvoiceProcessor implements Processor<String, BatchEvent, Vo
             log.info("BatchToInvoiceProcessor process event for waybillNos: {}", record.value().waybillNos());
             BatchEvent batch = record.value();
 
-            List<LandFreightInvoiceDetail> landFreightInvoiceDetails = invoiceService
-                    .findAllByStatusAndWaybillNoIn(InvoiceDetailStatus.INVOICE_STAGE_PENDING.getValue(),
-                    batch.waybillNos());
-
-            for (LandFreightInvoiceDetail landFreightInvoiceDetail : landFreightInvoiceDetails) {
-                invoiceService.postInvoiceData(List.of(landFreightInvoiceDetail.getAimsInvoiceData()));
-                landFreightInvoiceDetail.setStatus(InvoiceDetailStatus.INVOICE_STAGE_DONE);
+            List<LandFreightInvoiceDetail> landFreightInvoiceDetails;
+            if (batch.waybillNos().isEmpty()) {
+                landFreightInvoiceDetails = invoiceService
+                        .findAllByStatus(InvoiceDetailStatus.INVOICE_STAGE_PENDING.getValue());
+            } else {
+                landFreightInvoiceDetails = invoiceService
+                        .findAllByStatusAndWaybillNoIn(InvoiceDetailStatus.INVOICE_STAGE_PENDING.getValue(),
+                                batch.waybillNos());
             }
-
-            invoiceService.saveLandFreightInvoiceDetails(landFreightInvoiceDetails);
-            context.commit();
+            if (!landFreightInvoiceDetails.isEmpty()) {
+                postAndSaveDBInvoice(batch, landFreightInvoiceDetails);
+                context.commit();
+                log.info("***** END BatchToInvoiceProcessor done for waybillNos: {}", record.value().waybillNos());
+            } else {
+                log.info("***** END No pending invoice details found for waybillNos: {}", record.value().waybillNos());
+            }
         } catch (Exception ex) {
-            log.info("Error in pushing invoice data to AIMS , {}", record.value().waybillNos(), ex);
+            log.info("BatchToInvoiceProcessor Error in process data to AIMS , {}", record.value().waybillNos(), ex);
             throw new RuntimeException("Failed to push invoice", ex);
         }
+    }
+
+    private void postAndSaveDBInvoice(BatchEvent batch, List<LandFreightInvoiceDetail> landFreightInvoiceDetails) {
+        for (LandFreightInvoiceDetail landFreightInvoiceDetail : landFreightInvoiceDetails) {
+            invoiceService.postInvoiceData(List.of(landFreightInvoiceDetail.getAimsInvoiceData()));
+            landFreightInvoiceDetail.setStatus(INVOICE_STAGE_DONE);
+        }
+        invoiceService.saveLandFreightInvoiceDetails(landFreightInvoiceDetails);
+        log.info(LOG_UPDATE_STATUS, INVOICE_STAGE_DONE);
     }
 
 }

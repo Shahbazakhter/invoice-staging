@@ -2,7 +2,7 @@ package com.ajex.invoice.staging.kafka.invoice;
 
 import com.ajex.invoice.staging.dto.AimsInvoiceData;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 public class AimsLandFreightInvoiceMWProducer {
 
@@ -26,14 +26,13 @@ public class AimsLandFreightInvoiceMWProducer {
 
     public void postInvoiceData(List<AimsInvoiceData> aimsInvoiceData) {
         List<String> waybillNos = aimsInvoiceData.stream().map(AimsInvoiceData::getWaybillNo).toList();
-        log.info("AimsLandFreightInvoiceMWProducer postInvoiceData {}", waybillNos);
-        log.debug("Topic name {}", oracleRequestTopic);
+        log.info("postInvoiceData {}", waybillNos);
 
         String sInvoiceDtoList = objectMapper.writeValueAsString(aimsInvoiceData);
         CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(oracleRequestTopic, sInvoiceDtoList);
 
         handle(future, sInvoiceDtoList);
-        log.info("AimsLandFreightInvoiceMWProducer postInvoiceData completed for {}", waybillNos);
+        log.info("postInvoiceData completed for {}", waybillNos);
     }
 
     private void handle(CompletableFuture<SendResult<String, Object>> future, Object object) {

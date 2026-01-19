@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="APP_NAME" value="invoice-staging"/>
+
+    <!-- ================= COMMON PATTERN ================= -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} : %msg%n"/>
+
+    <!-- ================= APP LOG FILE ================= -->
+    <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= DEPENDENCY LOG FILE ================= -->
+    <appender name="DEPENDENCY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}-dependency.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-dependency.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= CONSOLE ================= -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= APPLICATION LOGGERS ================= -->
+    <logger name="com.ajex" level="INFO" additivity="false">
+        <appender-ref ref="APP_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ================= DEPENDENCY LOGGERS ================= -->
+
+    <!-- Kafka -->
+    <logger name="org.apache.kafka" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- Spring Kafka -->
+    <logger name="org.springframework.kafka" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- Kafka Streams -->
+    <logger name="org.apache.kafka.streams" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- Spring Framework -->
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- Feign -->
+    <logger name="feign" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- Apache HTTP -->
+    <logger name="org.apache.http" level="INFO" additivity="false">
+        <appender-ref ref="DEPENDENCY_FILE"/>
+    </logger>
+
+    <!-- ================= ROOT ================= -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

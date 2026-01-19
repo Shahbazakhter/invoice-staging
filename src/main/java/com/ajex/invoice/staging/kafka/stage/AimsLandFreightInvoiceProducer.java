@@ -2,14 +2,14 @@ package com.ajex.invoice.staging.kafka.stage;
 
 import com.ajex.invoice.staging.dto.RowEvent;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 public class AimsLandFreightInvoiceProducer {
 

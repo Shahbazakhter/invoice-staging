@@ -131,7 +131,6 @@ public class KafkaStreamsConfig {
                         Serdes.String().deserializer(),
                         new JacksonJsonSerde<>(BatchEvent.class).deserializer(),
                         batchOutputTopic)
-
                 .addProcessor("batch-invoice-aggregator",
                         () -> new BatchToInvoiceProcessor(invoiceService),
                         "batch-source");

@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@AllArgsConstructor(staticName = "of")
+@AllArgsConstructor
 public class InvoiceError {
 	
 	private String message;
