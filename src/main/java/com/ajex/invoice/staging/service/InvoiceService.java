@@ -1,27 +1,33 @@
 package com.ajex.invoice.staging.service;
 
 import com.ajex.invoice.staging.constant.BusinessLine;
+import com.ajex.invoice.staging.document.InvoiceDetail;
 import com.ajex.invoice.staging.document.LandFreightInvoiceDetail;
 import com.ajex.invoice.staging.dto.*;
 import com.ajex.invoice.staging.exception.InvoiceStagingException;
+import com.ajex.invoice.staging.integration.AIMSCommonService;
 import com.ajex.invoice.staging.kafka.invoice.AimsLandFreightInvoiceMWProducer;
 import com.ajex.invoice.staging.kafka.stage.AimsLandFreightInvoiceProducer;
 import com.ajex.invoice.staging.repository.LandFreightInvoiceDetailRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.ajex.invoice.staging.constant.InvoiceDetailStatus.*;
 import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.LOG_UPDATE_STATUS;
+import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.getUTCInstant;
 
 @Slf4j
 @Service
@@ -32,6 +38,8 @@ public class InvoiceService {
     private final AimsLandFreightInvoiceProducer aimsLandFreightProducer;
     private final AimsLandFreightInvoiceMWProducer aimsLandFreightInvoiceMWProducer;
     private final ExecutorService executorService = Executors.newCachedThreadPool(); // behaves like "virtual thread pool"
+    private final AIMSCommonService aimsCommonService;
+
     @Value("${aims.invoice-staging.row-input.topic:aims.invoice-staging.row-input.topic.v1}")
     private String rowInputTopic;
 
@@ -74,13 +82,20 @@ public class InvoiceService {
 
     public void stageInvoices(List<AimsInvoiceData> invoiceDatas) {
         List<LandFreightInvoiceDetail> landFreightInvoiceDetails = new ArrayList<>();
+        List<String> waybillNos = invoiceDatas.stream().map(AimsInvoiceData::getWaybillNo).distinct().toList();
+        Map<String, ObjectId> objectIdByWaybillNo = landFreightInvoiceDetailRepository.findAllByWaybillNoIn(waybillNos)
+                .stream().collect(Collectors.toMap(InvoiceDetail::getWaybillNo, InvoiceDetail::getId));
         invoiceDatas.forEach(invoiceData -> {
 
             LandFreightInvoiceDetail landFreightInvoiceDetail = new LandFreightInvoiceDetail();
+            if(objectIdByWaybillNo.containsKey(invoiceData.getWaybillNo())){
+                landFreightInvoiceDetail.setId(objectIdByWaybillNo.get(invoiceData.getWaybillNo()));
+            }
             landFreightInvoiceDetail.setAimsInvoiceData(invoiceData);
             landFreightInvoiceDetail.setWaybillNo(invoiceData.getWaybillNo());
             landFreightInvoiceDetail.setBusinessLine(BusinessLine.LAND_FREIGHT);
             landFreightInvoiceDetail.setStatus(INVOICE_STAGE);
+            landFreightInvoiceDetail.setInsertionTimestamp(getUTCInstant().toString());
             landFreightInvoiceDetails.add(landFreightInvoiceDetail);
         });
         landFreightInvoiceDetailRepository.saveAll(landFreightInvoiceDetails);
@@ -149,4 +164,13 @@ public class InvoiceService {
             log.info(LOG_UPDATE_STATUS, ERROR);
         }
     }
+
+    public void allowManifesterEdit(List<String> waybillNos) {
+        aimsCommonService.revokeManifesterConfirmation(waybillNos);
+    }
+
+    public void revalidateAgreement(List<String> waybillNos) {
+        aimsCommonService.recalculateAgreement(waybillNos);
+    }
+
 }

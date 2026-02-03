@@ -26,7 +26,7 @@ public class AimsLandFreightInvoiceMWProducer {
 
     public void postInvoiceData(List<AimsInvoiceData> aimsInvoiceData) {
         List<String> waybillNos = aimsInvoiceData.stream().map(AimsInvoiceData::getWaybillNo).toList();
-        log.info("postInvoiceData {}", waybillNos);
+        log.info("postInvoiceData to invoice-management {}", waybillNos);
 
         String sInvoiceDtoList = objectMapper.writeValueAsString(aimsInvoiceData);
         CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(oracleRequestTopic, sInvoiceDtoList);

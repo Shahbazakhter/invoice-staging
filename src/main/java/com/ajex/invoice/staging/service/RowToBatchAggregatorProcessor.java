@@ -32,7 +32,7 @@ public class RowToBatchAggregatorProcessor
         this.store = context.getStateStore("aggregation-store");
 
         // TIME trigger every minute
-        this.context.schedule(Duration.ofMinutes(1), PunctuationType.WALL_CLOCK_TIME, this::onPunctuate);
+        this.context.schedule(Duration.ofMinutes(5), PunctuationType.WALL_CLOCK_TIME, this::onPunctuate);
     }
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -58,7 +58,7 @@ public class RowToBatchAggregatorProcessor
 
             // SIZE trigger (20 rows)
             if (state.sizeReached()) {
-                emitBatch(key, state, "SIZE");
+                emitBatch(key, state, "SIZE", record);
                 store.delete(key);
             } else {
                 store.put(key, state);
@@ -82,7 +82,7 @@ public class RowToBatchAggregatorProcessor
                     AggregationState state = entry.value;
 
                     if (state.timeExceeded(now)) {
-                        emitBatch(entry.key, state, "TIME");
+                        emitBatch(entry.key, state, "TIME", null);
                         store.delete(entry.key);
                     }
                 }
@@ -96,7 +96,7 @@ public class RowToBatchAggregatorProcessor
 
     private void emitBatch(String key,
                            AggregationState state,
-                           String trigger) {
+                           String trigger, Record<String, RowEvent> record) {
         try {
             log.info("Emitting batch started key: {} with {} rows due to {} trigger",
                     key, state.getRowIds().size(), trigger);
@@ -106,7 +106,8 @@ public class RowToBatchAggregatorProcessor
                     state.getRowIds(),
                     trigger
             );
-            context.forward(new Record<>(key, batch, System.currentTimeMillis()));
+            context.forward(new Record<>(key, batch, System.currentTimeMillis(),
+                    record.headers()));
             log.debug("Emitting batch done key: {}", key);
         } catch (Exception e) {
             log.error("Exception occurred emitting batch: ", e);

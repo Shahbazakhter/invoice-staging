@@ -5,8 +5,14 @@
     <property name="APP_NAME" value="invoice-staging"/>
 
     <!-- ================= COMMON PATTERN ================= -->
+    <!--<property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} : %msg%n"/>-->
+<!--    <property name="LOG_PATTERN"-->
+<!--              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [%X{traceId}:%X{spanId}] %logger{36} : %msg%n"/>-->
+
     <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} : %msg%n"/>
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [%X{traceId:-},%X{spanId:-}] %logger{36} : %msg%n"/>
+
 
     <!-- ================= APP LOG FILE ================= -->
     <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

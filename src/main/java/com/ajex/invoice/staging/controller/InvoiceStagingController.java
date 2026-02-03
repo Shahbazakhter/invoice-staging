@@ -19,6 +19,9 @@ public class InvoiceStagingController {
 
     private final InvoiceService invoiceService;
 
+    /**
+     * TODO Add Pagination
+     */
     @GetMapping
     public List<LandFreightInvoiceDetail> getAllInvoiceStages(
             @RequestParam(value = "statuses") List<String> statuses,
@@ -30,6 +33,24 @@ public class InvoiceStagingController {
     public CommonResponse<String> stagingForPush(@Valid @RequestBody List<String> waybillNos) {
         invoiceService.stageForPush(waybillNos);
         return new CommonResponse<>("Push to Oracle Initiated", 200);
+    }
+
+    @PutMapping("/allow-edit")
+    public CommonResponse<String> allowManifesterEdit(@Valid @RequestBody List<String> waybillNos) {
+        invoiceService.allowManifesterEdit(waybillNos);
+        return new CommonResponse<>("Manifester confirmation is revoked", 200);
+    }
+
+    @PutMapping("/revalidate")
+    public CommonResponse<String> revalidateAgreement(@Valid @RequestBody List<String> waybillNos) {
+        invoiceService.revalidateAgreement(waybillNos);
+        return new CommonResponse<>("Revalidated successfully", 200);
+    }
+
+    @PutMapping("/revalidate-new")
+    public CommonResponse<String> revalidateNewAgreement(@Valid @RequestBody List<String> waybillNos) {
+        /*invoiceService.revalidateAgreement(waybillNos);*/
+        return new CommonResponse<>("Revalidated on new agreement successfully", 200);
     }
 
 }

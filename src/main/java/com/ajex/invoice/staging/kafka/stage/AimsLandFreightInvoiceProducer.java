@@ -22,7 +22,7 @@ public class AimsLandFreightInvoiceProducer {
 
     public void push(RowEvent rowEvents) {
         try {
-            log.info("Received kafka AIMS Invoice Staging message {}", rowEvents);
+            log.info("Pushed from Staging row input to Batch {}", rowEvents);
             String serializedEvent = objectMapper.writeValueAsString(rowEvents);
             kafkaTemplate.send(rowInputTopic, rowEvents.aggregationKey(), serializedEvent);
         } catch (Exception e) {

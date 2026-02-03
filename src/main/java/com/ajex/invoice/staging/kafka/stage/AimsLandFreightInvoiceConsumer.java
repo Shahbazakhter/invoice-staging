@@ -32,8 +32,9 @@ public class AimsLandFreightInvoiceConsumer {
             groupId = "${spring.kafka.consumer.group-id}")
     public void listenToAimsInvoiceStaging(String message) {
         try {
-            log.info("AIMS Invoice Staging message {}", message);
-            List<AimsInvoiceData> invoiceData = objectMapper.readValue(message, new TypeReference<>() {
+            log.info("Received from AIMS {}", message);
+            List<AimsInvoiceData> invoiceData = objectMapper
+                    .readValue(message, new TypeReference<>() {
             });
             if (invoiceData != null && !invoiceData.isEmpty()) {
                 invoiceService.stageInvoices(invoiceData);
