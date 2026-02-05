@@ -9,24 +9,18 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class AIMSUtilServiceConfig {
 
-//
-//    @Bean
-//    public Logger.Level feignLoggerLevel() {
-//        return Logger.Level.FULL;
-//    }
-
     /**
      * Add Authorization header for every request
      */
-    @Bean
-    public RequestInterceptor requestInterceptor() {
-        return requestTemplate -> {
-//            requestTemplate.header("Authorization", "Bearer " + splServiceBearerToken);
-//            requestTemplate.header("Accept", "application/json");
-            requestTemplate.header("username", "123");
-            requestTemplate.header("password", "Ajex@123");
-            requestTemplate.header("roles", "[admin]");
-        };
-    }
+//    @Bean
+//    public RequestInterceptor requestInterceptor() {
+//        return requestTemplate -> {
+////            requestTemplate.header("Authorization", "Bearer " + splServiceBearerToken);
+////            requestTemplate.header("Accept", "application/json");
+//            requestTemplate.header("username", "123");
+//            requestTemplate.header("password", "Ajex@123");
+////            requestTemplate.header("roles", "[admin]");
+//        };
+//    }
 
 }
