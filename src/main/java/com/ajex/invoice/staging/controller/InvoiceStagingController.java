@@ -2,6 +2,7 @@ package com.ajex.invoice.staging.controller;
 
 import com.ajex.invoice.staging.document.LandFreightInvoiceDetail;
 import com.ajex.invoice.staging.dto.CommonResponse;
+import com.ajex.invoice.staging.dto.InvoiceFilterRequest;
 import com.ajex.invoice.staging.service.InvoiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,18 @@ public class InvoiceStagingController {
      */
     @GetMapping
     public List<LandFreightInvoiceDetail> getAllInvoiceStages(
-            @RequestParam(value = "statuses") List<String> statuses,
+            @RequestParam(value = "businessUnits", required = false) List<String> businessUnits,
+            @RequestParam(value = "customerSubAccounts", required = false) List<String> customerSubAccounts,
+            @RequestParam(value = "waybillNos", required = false) List<String> waybillNos,
+            @RequestParam(value = "statuses", required = false) List<String> statuses,
             @RequestParam(defaultValue = "land_freight", required = false) String businessLine) {
-        return invoiceService.getAllInvoices(statuses, businessLine);
+        InvoiceFilterRequest invoiceFilterRequest = new InvoiceFilterRequest();
+        invoiceFilterRequest.setBusinessUnits(businessUnits);
+        invoiceFilterRequest.setBusinessLine(businessLine);
+        invoiceFilterRequest.setCustomerSubAccounts(customerSubAccounts);
+        invoiceFilterRequest.setWaybillNos(waybillNos);
+        invoiceFilterRequest.setStatuses(statuses);
+        return invoiceService.getAllInvoices(invoiceFilterRequest);
     }
 
     @PostMapping("/push")

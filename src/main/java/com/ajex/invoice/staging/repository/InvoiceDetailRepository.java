@@ -1,11 +1,14 @@
 package com.ajex.invoice.staging.repository;
 
-import com.ajex.invoice.staging.document.InvoiceDetail;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import com.ajex.invoice.staging.document.LandFreightInvoiceDetail;
+import com.ajex.invoice.staging.dto.InvoiceFilterRequest;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
-public interface InvoiceDetailRepository extends MongoRepository<InvoiceDetail, ObjectId> {
+public interface InvoiceDetailRepository {
+
+    List<LandFreightInvoiceDetail> filter(InvoiceFilterRequest request, int page, int size);
 
 }

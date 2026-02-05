@@ -8,6 +8,7 @@ import com.ajex.invoice.staging.exception.InvoiceStagingException;
 import com.ajex.invoice.staging.integration.AIMSCommonService;
 import com.ajex.invoice.staging.kafka.invoice.AimsLandFreightInvoiceMWProducer;
 import com.ajex.invoice.staging.kafka.stage.AimsLandFreightInvoiceProducer;
+import com.ajex.invoice.staging.repository.InvoiceDetailRepository;
 import com.ajex.invoice.staging.repository.LandFreightInvoiceDetailRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.getUTCIns
 public class InvoiceService {
 
     private final LandFreightInvoiceDetailRepository landFreightInvoiceDetailRepository;
+    private final InvoiceDetailRepository invoiceDetailRepository;
     private final AimsLandFreightInvoiceProducer aimsLandFreightProducer;
     private final AimsLandFreightInvoiceMWProducer aimsLandFreightInvoiceMWProducer;
     private final ExecutorService executorService = Executors.newCachedThreadPool(); // behaves like "virtual thread pool"
@@ -46,10 +48,9 @@ public class InvoiceService {
     @Value("${aims.invoice-staging.batch-output.topic:aims.invoice-staging.batch-output.topic.v1}")
     private String batchOutputTopic;
 
-    public List<LandFreightInvoiceDetail> getAllInvoices(List<String> statuses,
-                                                         String businessLine) {
-        return landFreightInvoiceDetailRepository.findByStatusInAndBusinessLine(statuses,
-                businessLine);
+    public List<LandFreightInvoiceDetail> getAllInvoices(InvoiceFilterRequest invoiceFilterRequest) {
+
+        return invoiceDetailRepository.filter(invoiceFilterRequest, 1, 5000);
     }
 
     public void stageForPush(@Valid List<String> waybillNos) {

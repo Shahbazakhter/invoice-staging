@@ -31,6 +31,9 @@ public abstract class InvoiceDetail {
     private long transactionDate;
 
     private String businessLine;
+    private String businessUnit;
+    private String customerName;
+
     private String status;
 
     private List<InvoiceError> errorList;
