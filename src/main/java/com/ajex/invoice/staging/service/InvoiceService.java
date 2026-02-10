@@ -50,7 +50,7 @@ public class InvoiceService {
 
     public List<LandFreightInvoiceDetail> getAllInvoices(InvoiceFilterRequest invoiceFilterRequest) {
 
-        return invoiceDetailRepository.filter(invoiceFilterRequest, 1, 5000);
+        return invoiceDetailRepository.filter(invoiceFilterRequest, 1, 2000);
     }
 
     public void stageForPush(@Valid List<String> waybillNos) {
@@ -70,6 +70,7 @@ public class InvoiceService {
         landFreightInvoiceDetail.forEach(ldFreightInvoiceDetail ->
         {
             ldFreightInvoiceDetail.setStatus(INVOICE_STAGE_PENDING);
+            ldFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
             rowEvents.add(new RowEvent(uuid, ldFreightInvoiceDetail.getWaybillNo(), now));
         });
         landFreightInvoiceDetailRepository.saveAll(landFreightInvoiceDetail);
@@ -89,7 +90,7 @@ public class InvoiceService {
         invoiceDatas.forEach(invoiceData -> {
 
             LandFreightInvoiceDetail landFreightInvoiceDetail = new LandFreightInvoiceDetail();
-            if(objectIdByWaybillNo.containsKey(invoiceData.getWaybillNo())){
+            if (objectIdByWaybillNo.containsKey(invoiceData.getWaybillNo())) {
                 landFreightInvoiceDetail.setId(objectIdByWaybillNo.get(invoiceData.getWaybillNo()));
             }
             landFreightInvoiceDetail.setAimsInvoiceData(invoiceData);
@@ -97,6 +98,7 @@ public class InvoiceService {
             landFreightInvoiceDetail.setBusinessLine(BusinessLine.LAND_FREIGHT);
             landFreightInvoiceDetail.setStatus(INVOICE_STAGE);
             landFreightInvoiceDetail.setInsertionTimestamp(getUTCInstant().toString());
+            landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
             landFreightInvoiceDetails.add(landFreightInvoiceDetail);
         });
         landFreightInvoiceDetailRepository.saveAll(landFreightInvoiceDetails);
@@ -139,7 +141,8 @@ public class InvoiceService {
         if (!successInvoiceDetail.isEmpty()) {
             successInvoiceDetail.forEach(landFreightInvoiceDetail -> {
                 landFreightInvoiceDetail.setStatus(PUSHED_TO_ORACLE);
-                oracleInvoiceStatusResponse.getFailedInvoices().stream().findFirst()
+                landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
+                oracleInvoiceStatusResponse.getSuccessfulInvoices().stream().findFirst()
                         .ifPresent(success -> {
                             landFreightInvoiceDetail.setTransactionDate(success.getTransactionDate());
                             landFreightInvoiceDetail.setTransactionId(success.getTransactionId());
@@ -155,6 +158,7 @@ public class InvoiceService {
         if (!failedInvoiceDetails.isEmpty()) {
             failedInvoiceDetails.forEach(landFreightInvoiceDetail -> {
                 landFreightInvoiceDetail.setStatus(ERROR);
+                landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
                 oracleInvoiceStatusResponse.getFailedInvoices().stream().findFirst()
                         .ifPresent(failed -> landFreightInvoiceDetail.getErrorList()
                                 .add(new InvoiceError(failed.getResponseCode() + ": " + failed.getResponseMessage(),

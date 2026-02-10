@@ -18,12 +18,11 @@ public class ApiExceptionHandler {
         return new CommonResponse(e.getErrorMessage(), e.getStatusCode(), null);
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler({Exception.class, RuntimeException.class})
     @ResponseBody
-    public CommonResponse handleException(Exception e) {
+    public CommonResponse handleGeneralException(Exception e) {
         log.error("Error Occurred", e);
         return new CommonResponse(CustomError.INTERNAL_SERVER_ERROR.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }

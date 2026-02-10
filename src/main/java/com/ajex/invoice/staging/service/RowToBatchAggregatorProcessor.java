@@ -4,6 +4,8 @@ import com.ajex.invoice.staging.dto.BatchEvent;
 import com.ajex.invoice.staging.dto.RowEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.PunctuationType;
 import org.apache.kafka.streams.processor.api.Processor;
@@ -26,13 +28,20 @@ public class RowToBatchAggregatorProcessor
     private ProcessorContext<String, BatchEvent> context;
     private KeyValueStore<String, AggregationState> store;
 
+//    @Value("${aggregation.time-limit:5}")
+//    private final Integer timeLimitMinutes;
+
+//    public RowToBatchAggregatorProcessor(Integer timeLimitMinutes) {
+//        this.timeLimitMinutes = timeLimitMinutes;
+//    }
+
     @Override
     public void init(ProcessorContext<String, BatchEvent> context) {
         this.context = context;
         this.store = context.getStateStore("aggregation-store");
 
         // TIME trigger every minute
-        this.context.schedule(Duration.ofMinutes(5), PunctuationType.WALL_CLOCK_TIME, this::onPunctuate);
+        this.context.schedule(Duration.ofMinutes(10), PunctuationType.WALL_CLOCK_TIME, this::onPunctuate);
     }
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -106,8 +115,16 @@ public class RowToBatchAggregatorProcessor
                     state.getRowIds(),
                     trigger
             );
-            context.forward(new Record<>(key, batch, System.currentTimeMillis(),
-                    record.headers()));
+
+            Headers headers = record != null ? record.headers() : new RecordHeaders();
+
+            context.forward(new Record<>(
+                    key,
+                    batch,
+                    System.currentTimeMillis(),
+                    headers));
+
+            context.forward(new Record<>(key, batch, System.currentTimeMillis(), headers));
             log.debug("Emitting batch done key: {}", key);
         } catch (Exception e) {
             log.error("Exception occurred emitting batch: ", e);

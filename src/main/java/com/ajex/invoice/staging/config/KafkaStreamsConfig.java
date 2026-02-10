@@ -40,6 +40,9 @@ public class KafkaStreamsConfig {
     @Value("${aims.invoice-staging.batch-output.topic:aims.invoice-staging.batch-output.topic.v1}")
     private String batchOutputTopic;
 
+//    @Value("${aggregation.time-limit:5}")
+//    private final Integer aggregationTimeLimit;
+
     private final InvoiceService invoiceService;
 
     /**
