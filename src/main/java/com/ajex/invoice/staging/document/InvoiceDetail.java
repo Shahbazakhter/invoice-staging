@@ -11,8 +11,11 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.ajex.invoice.staging.constant.InvoiceStagingConstant.getUTCInstant;
 
 @Document(collection = "invoice-details")
 @Data
@@ -33,6 +36,7 @@ public abstract class InvoiceDetail {
     private String businessLine;
     private String businessUnit;
     private String customerName;
+    private Instant manifesterConfirmDate;
 
     private String status;
 
@@ -55,6 +59,7 @@ public abstract class InvoiceDetail {
         } else {
             this.status = status.getValue().toLowerCase();
         }
+        this.setLastUpdatedTimestamp(getUTCInstant().toString());
     }
 
     public BusinessLine getBusinessLine() {

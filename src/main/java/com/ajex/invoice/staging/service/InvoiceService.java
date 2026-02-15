@@ -70,7 +70,6 @@ public class InvoiceService {
         landFreightInvoiceDetail.forEach(ldFreightInvoiceDetail ->
         {
             ldFreightInvoiceDetail.setStatus(INVOICE_STAGE_PENDING);
-            ldFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
             rowEvents.add(new RowEvent(uuid, ldFreightInvoiceDetail.getWaybillNo(), now));
         });
         landFreightInvoiceDetailRepository.saveAll(landFreightInvoiceDetail);
@@ -98,7 +97,6 @@ public class InvoiceService {
             landFreightInvoiceDetail.setBusinessLine(BusinessLine.LAND_FREIGHT);
             landFreightInvoiceDetail.setStatus(INVOICE_STAGE);
             landFreightInvoiceDetail.setInsertionTimestamp(getUTCInstant().toString());
-            landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
             landFreightInvoiceDetails.add(landFreightInvoiceDetail);
         });
         landFreightInvoiceDetailRepository.saveAll(landFreightInvoiceDetails);
@@ -141,7 +139,6 @@ public class InvoiceService {
         if (!successInvoiceDetail.isEmpty()) {
             successInvoiceDetail.forEach(landFreightInvoiceDetail -> {
                 landFreightInvoiceDetail.setStatus(PUSHED_TO_ORACLE);
-                landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
                 oracleInvoiceStatusResponse.getSuccessfulInvoices().stream().findFirst()
                         .ifPresent(success -> {
                             landFreightInvoiceDetail.setTransactionDate(success.getTransactionDate());
@@ -158,7 +155,6 @@ public class InvoiceService {
         if (!failedInvoiceDetails.isEmpty()) {
             failedInvoiceDetails.forEach(landFreightInvoiceDetail -> {
                 landFreightInvoiceDetail.setStatus(ERROR);
-                landFreightInvoiceDetail.setLastUpdatedTimestamp(getUTCInstant().toString());
                 oracleInvoiceStatusResponse.getFailedInvoices().stream().findFirst()
                         .ifPresent(failed -> landFreightInvoiceDetail.getErrorList()
                                 .add(new InvoiceError(failed.getResponseCode() + ": " + failed.getResponseMessage(),
@@ -172,6 +168,13 @@ public class InvoiceService {
 
     public void allowManifesterEdit(List<String> waybillNos) {
         aimsCommonService.revokeManifesterConfirmation(waybillNos);
+        List<LandFreightInvoiceDetail> invoiceDetailsWaybills
+                = landFreightInvoiceDetailRepository.findAllByWaybillNoIn(waybillNos);
+
+        invoiceDetailsWaybills.forEach(invoice ->{
+            invoice.setStatus(INVOICE_STAGE_UPDATING);
+        });
+        landFreightInvoiceDetailRepository.saveAll(invoiceDetailsWaybills);
     }
 
     public void revalidateAgreement(List<String> waybillNos) {

@@ -12,6 +12,8 @@ public class AimsInvoiceData {
 
     private String mainAccount;
     private String subAccountNo;
+    private String customerName;
+    private String businessUnit;
     private String waybillNo;
     private String serviceType;
     private String subServiceType;

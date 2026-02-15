@@ -1,5 +1,6 @@
 package com.ajex.invoice.staging.repository;
 
+import com.ajex.invoice.staging.constant.InvoiceDetailStatus;
 import com.ajex.invoice.staging.document.LandFreightInvoiceDetail;
 import com.ajex.invoice.staging.dto.InvoiceFilterRequest;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.ajex.invoice.staging.constant.InvoiceDetailStatus.INVOICE_STAGE_UPDATING;
 
 @Repository
 @RequiredArgsConstructor
@@ -51,6 +54,8 @@ public class InvoiceDetailRepositoryImpl implements InvoiceDetailRepository {
                             .in(req.getStatuses())
             );
         }
+        criteriaList.add(Criteria.where("status")
+                        .nin(INVOICE_STAGE_UPDATING));
 /*
 
         // date range filter
